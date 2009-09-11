@@ -1,0 +1,5 @@
+Release 0.2
+
+Changes since 0.1 (the JIRA attachment version):
+* Established a distribution package.
+

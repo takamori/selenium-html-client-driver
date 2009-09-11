@@ -1,0 +1,83 @@
+<project name="html-client-driver" default="dist">
+    <property name="package.name" value="selenium-html-client-driver"/>
+    <property name="version" value="0.2"/>
+    <property name="build.dir" value="build"/>
+    <property name="dist.dir" value="dist"/>
+    <property name="src.dir" value="src"/>
+    <property name="test.dir" value="test"/>
+    
+    <property name="package.version.name" value="${package.name}-${version}"/>
+    <property name="build.classes.dir" value="${build.dir}/classes"/>
+    <property name="build.lib.dir" value="${build.dir}/lib"/>
+    <property name="build.dist.dir" value="${build.dir}/${package.version.name}"/>
+    <property name="build.jar.file" value="${build.lib.dir}/${package.version.name}.jar" />
+    
+    <fileset dir="${basedir}/thirdparty" id="thirdparty.libs">
+        <include name="htmlunit-2.2.jar"/>
+        <include name="nekohtml-1.9.8.jar"/>
+        <include name="xercesImpl-2.8.1.jar"/>
+        <include name="xml-apis-1.0.b2.jar"/>
+        <include name="selenium-java-client-driver-1.0.1.jar"/>
+    </fileset>
+    <path id="classpath">
+        <fileset refid="thirdparty.libs" />
+    </path>
+    
+    <target name="clean">
+        <delete dir="${build.dir}"/>
+        <delete dir="${dist.dir}"/>
+    </target>
+    
+    <target name="dist" depends="jar">
+        <mkdir dir="${dist.dir}"/>
+        <copy todir="${build.dist.dir}/lib">
+            <fileset refid="thirdparty.libs" />
+            <fileset file="${build.jar.file}" />
+        </copy>
+        <copy todir="${build.dist.dir}">
+            <fileset dir="${basedir}" includes="samples/**,doc/**" />
+            <fileset dir="${basedir}" >
+                <include name="*.txt"/>
+                <include name="*.sh"/>
+            </fileset>
+        </copy>
+        <zip destfile="${dist.dir}/${package.version.name}.zip" basedir="${build.dir}" includes="${package.version.name}/**" />
+    </target>
+    
+    <target name="jar" depends="compile">
+        <mkdir dir="${build.lib.dir}"/>
+        <jar jarfile="${build.jar.file}" basedir="${build.classes.dir}"/>
+    </target>
+    
+    <target name="compile">
+        <mkdir dir="${build.dir}"/>
+        <mkdir dir="${build.classes.dir}"/>
+        <javac srcdir="${src.dir}" destdir="${build.classes.dir}" source="1.5" target="1.5">
+            <classpath refid="classpath"/>
+        </javac>
+    </target>
+    
+    <target name="testdist" depends="dist,testdist-unpack,testdist-exec">
+    </target>
+    
+    <target name="testdist-exec" >
+        <exec dir="${test.dir}/${package.version.name}" executable="./selenium-html.sh" failonerror="yes">
+            <arg value="--test"/>
+            <arg value="samples/test_google.html"/>
+        </exec>
+        <exec dir="${test.dir}/${package.version.name}" executable="./selenium-html.sh" failonerror="yes">
+            <arg value="--testsuite"/>
+            <arg value="samples/test_suite.html"/>
+        </exec>
+    </target>
+    
+    <target name="testdist-unpack" >
+        <unzip src="${dist.dir}/${package.version.name}.zip" dest="${test.dir}" />
+        <chmod perm="+x" dir="${test.dir}/${package.version.name}" includes="*.sh" />
+    </target>
+    
+    <target name="testdist-clean">
+        <delete dir="${test.dir}"/>
+    </target>
+    
+</project>
